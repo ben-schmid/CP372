@@ -2,17 +2,21 @@ import socket
 import threading
 from datetime import datetime
 import os
-
+ 
+# hash to save client cache
 client_cache = {}
 max_clients = 3
 
 def handle_client(client_socket, client_name):
+    #add start time to client cache when they join
     client_cache[client_name] = {"start_time": datetime.now(), "end_time": None}
     while True:
         try:
             message = client_socket.recv(1024).decode()
             if message.lower() == "exit":
                 print(f"{client_name} has disconnected.")
+
+                #add endtime to client cache when they disconnect
                 client_cache[client_name]['end_time'] = datetime.now()
                 client_socket.close()
                 break
@@ -45,7 +49,7 @@ def server():
             client_thread.start() 
 
         else:
-            print("Max client reached.")
+            print("Max clients reached.")
 
 if __name__ == '__main__':
     server()
