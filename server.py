@@ -79,7 +79,7 @@ def handle_client(client_socket, client_name):
 
 def server():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(('0.0.0.0', 12345))
+    server_socket.bind(('0.0.0.0', 55300))
     server_socket.listen(3)
     print("Server is listening...")
 
