@@ -20,7 +20,7 @@ def handle_client(client_socket, client_id_name):
         with client_lock:
             if current_clients >= max_clients:
                 print(f"Max clients reached. Rejecting {client_name}")
-                client_socket.send("Server is busy. Try again later.".encode())
+                client_socket.send("Busy".encode())
                 client_socket.close()
                 current_clients +=1
                 return
