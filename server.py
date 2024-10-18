@@ -12,17 +12,33 @@ cache_lock = threading.Lock()
 
 FILE_DIRECTORY = "files"
 
-def handle_client(client_socket, client_name):
+def handle_client(client_socket, client_id_name):
     global current_clients
-    with client_lock:
-        current_clients += 1
-    print("Client count: ", current_clients)
-    #add start time to client cache when they join
-    connection_start = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    #add client to hash
-    with cache_lock:
-        client_cache[client_name] = {"start_time": connection_start, "end_time": None}
     try:
+        client_name = client_id_name + client_socket.recv(1024).decode('utf-8')
+
+        with client_lock:
+            if current_clients >= max_clients:
+                print(f"Max clients reached. Rejecting {client_name}")
+                client_socket.send("Server is busy. Try again later.".encode())
+                client_socket.close()
+                current_clients +=1
+                return
+            else:
+                current_clients += 1
+        
+        
+        print("Client count: ", current_clients)
+        print(f"Client connected as {client_name}")
+
+        #add start time to client cache when they join
+        connection_start = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        #add client to hash
+        with cache_lock:
+            client_cache[client_name] = {"start_time": connection_start, "end_time": None}
+        
+        client_socket.send("Welcome".encode('utf-8'))
+
         while True:
             
             message = client_socket.recv(1024).decode()
@@ -99,18 +115,14 @@ def server():
 
     client_id = 1
     while True:
-        if current_clients < max_clients:
-            client_socket, addr = server_socket.accept()
-            client_name = f"Client  {client_id}"
-            print(f"Connection from {addr} as {client_name}")
-            client_id += 1
+        client_socket, addr = server_socket.accept()
+        client_name_id = f"Client {client_id}: "
+        print(f"Connection from {addr} as {client_name_id}")
+        client_id += 1
 
             #create a new thread for multiple clients
-            client_thread = threading.Thread(target=handle_client, args=(client_socket, client_name))
-            client_thread.start() 
-
-        else:
-            print("Max clients reached.")
+        client_thread = threading.Thread(target=handle_client, args=(client_socket, client_name_id))
+        client_thread.start() 
 
 if __name__ == '__main__':
     server()
