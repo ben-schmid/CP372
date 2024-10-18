@@ -6,7 +6,8 @@ SERVER_PORT = 55300      # Server  Port
 def start_client():
     # Create a TCP/IP socket
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    
+    #set timeout
+    client_socket.settimeout(20)
     # Connect Socket to server Address
     try:
         client_socket.connect((SERVER_IP, SERVER_PORT))
@@ -17,6 +18,21 @@ def start_client():
     
     client_name = input("Enter your client name: ")
     client_socket.sendall(client_name.encode())
+
+
+    #check if servers max clients is reached
+    initial_response = client_socket.recv(1024).decode()
+    if initial_response == "Busy":
+        print("Server is busy. Try again later.")
+        client_socket.close()
+        return
+    #welcome is handshake between server and client
+    elif initial_response == "Welcome":
+        print("Connected to the server successfully.")
+    else:
+        print("Unexpected response from server.")
+        client_socket.close()
+        return
     
     # Main loop for sending and receiving messages
     try:
@@ -32,22 +48,29 @@ def start_client():
                 print("Closing connection to server...")
                 break
             
-            # Receive response from the server
-            response = client_socket.recv(1024).decode()
-            print(f"Server: {response}")
-            
-            # Handle special command 'status' to fetch server cache
-            if message.lower() == 'status':
-                print("Fetching server status...")
-            
-            # Handle 'list' command to fetch file list from server
-            elif message.lower() == 'list':
-                print("Requesting file list from server...")
-                # Server should respond with a list of files
-            
-            elif message.startswith("get "):
-                filename = message.split(" ", 1)[1]
-                print(f"Requesting file '{filename}' from server...")
+            #exctract file from server
+            if message.lower().startswith("get "):
+                #open file name
+                with open(message[4:], "wb") as file:
+                    while True:
+                        # Receive data
+                        chunk = client_socket.recv(1024)
+                        if not chunk:
+                            break
+                        # Check if EOF is in the chunk
+                        if b"EOF" in chunk:
+                            # Write data up to EOF
+                            eof_index = chunk.find(b"EOF")
+                            file.write(chunk[:eof_index])
+                            print("File received successfully.")
+                            break
+                        else:
+                            file.write(chunk)
+                continue
+
+            else:
+                response = client_socket.recv(1024).decode()
+                print(f"Server: {response}")
 
     except KeyboardInterrupt:
         print("\nDisconnected from server.")

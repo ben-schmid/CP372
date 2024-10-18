@@ -14,18 +14,19 @@ FILE_DIRECTORY = "files"
 
 def handle_client(client_socket, client_id_name):
     global current_clients
+    client_accepted = False  
     try:
         client_name = client_id_name + client_socket.recv(1024).decode('utf-8')
-
+        
+        #logic to determine if max clients have been reached
         with client_lock:
             if current_clients >= max_clients:
                 print(f"Max clients reached. Rejecting {client_name}")
                 client_socket.send("Busy".encode())
-                client_socket.close()
-                current_clients +=1
                 return
             else:
                 current_clients += 1
+                client_accepted = True
         
         
         print("Client count: ", current_clients)
@@ -37,7 +38,8 @@ def handle_client(client_socket, client_id_name):
         with cache_lock:
             client_cache[client_name] = {"start_time": connection_start, "end_time": None}
         
-        client_socket.send("Welcome".encode('utf-8'))
+        #send client welcome so client can continue while loop
+        client_socket.send("Welcome".encode())
 
         while True:
             
@@ -102,8 +104,11 @@ def handle_client(client_socket, client_id_name):
         print(f"An error occurred with {client_name}: {e}")
     finally:
             client_socket.close()
-            with client_lock:
-                current_clients -= 1
+            if client_accepted:
+                with client_lock:
+                    current_clients -= 1
+                with cache_lock:
+                        client_cache[client_name]['end_time'] = datetime.now()
             print("Current Clients: ", current_clients)
         
 
