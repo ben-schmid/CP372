@@ -49,7 +49,7 @@ def handle_client(client_socket, client_id_name):
 
                 #add endtime to client cache when they disconnect
                 with cache_lock:
-                    client_cache[client_name]['end_time'] = datetime.now()
+                    client_cache[client_name]['end_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 break
             elif message.lower() == "status":
                 status_message = ""
@@ -108,7 +108,7 @@ def handle_client(client_socket, client_id_name):
                 with client_lock:
                     current_clients -= 1
                 with cache_lock:
-                        client_cache[client_name]['end_time'] = datetime.now()
+                        client_cache[client_name]['end_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             print("Current Clients: ", current_clients)
         
 
