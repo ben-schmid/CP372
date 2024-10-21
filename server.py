@@ -51,7 +51,6 @@ def handle_client(client_socket, client_id_name):
                 with cache_lock:
                     client_cache[client_name]['end_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 break
-            
             elif message.lower() == "status":
                 status_message = ""
                 
@@ -72,7 +71,6 @@ def handle_client(client_socket, client_id_name):
                 
                 #send status to clients
                 client_socket.send(status_message.encode())
-
             elif message.lower() == "list":
                 files = os.listdir(FILE_DIRECTORY)
                 file_list = "\n".join(files)
@@ -97,7 +95,7 @@ def handle_client(client_socket, client_id_name):
                     #send EOF flag to client so it knows to stop loop and file is done
                     client_socket.send("EOF".encode())
                 else:
-                    client_socket.send("File not found".encode)
+                    client_socket.send("File not found".encode())
                     
             else:
                 response = message + " ACK"
@@ -127,7 +125,7 @@ def server():
         print(f"Connection from {addr} as {client_name_id}")
         client_id += 1
 
-        #create a new thread for multiple clients
+            #create a new thread for multiple clients
         client_thread = threading.Thread(target=handle_client, args=(client_socket, client_name_id))
         client_thread.start() 
 
