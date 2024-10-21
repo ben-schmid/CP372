@@ -2,7 +2,7 @@ import socket
 import os
 
 
-SERVER_IP = '192.168.1.104'  # Server IP
+SERVER_IP = '127.0.0.1'  # Server IP
 SERVER_PORT = 55300      # Server  Port
 def start_client():
     # Create a TCP/IP socket
