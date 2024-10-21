@@ -1,7 +1,8 @@
 import socket
+import os
 
 
-SERVER_IP = '127.0.0.1'  # Server IP
+SERVER_IP = '192.168.1.104'  # Server IP
 SERVER_PORT = 55300      # Server  Port
 def start_client():
     # Create a TCP/IP socket
@@ -50,12 +51,18 @@ def start_client():
             
             #exctract file from server
             if message.lower().startswith("get "):
-                #open file name
+                #file_response = client_socket.recv(1024).decode()
+                #if file_response == "File found":
+                    #open file name
                 with open(message[4:], "wb") as file:
                     while True:
                         # Receive data
                         chunk = client_socket.recv(1024)
-                        if not chunk:
+                        if chunk == b"File not found":
+                            #file does not exist, remove the file it just created
+                            print("File not found")
+                            print()
+                            os.remove(message[4:])
                             break
                         # Check if EOF is in the chunk
                         if b"EOF" in chunk:
@@ -63,6 +70,7 @@ def start_client():
                             eof_index = chunk.find(b"EOF")
                             file.write(chunk[:eof_index])
                             print("File received successfully.")
+                            print()
                             break
                         else:
                             file.write(chunk)
